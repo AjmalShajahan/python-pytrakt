@@ -16,7 +16,7 @@ def test_dismiss_show_recomendation():
 
 
 def test_recommended_shows():
-    assert all([isinstance(s, TVShow) for s in get_recommended_shows()])
+    assert all(isinstance(s, TVShow) for s in get_recommended_shows())
 
 
 def test_trending_shows():
@@ -40,7 +40,7 @@ def test_get_show():
         got = TVShow(title)
         images = got.images
         assert isinstance(images, dict)
-        assert str(got) == '<TVShow> ' + got.title
+        assert str(got) == f'<TVShow> {got.title}'
         assert repr(got) == str(got)
 
 
@@ -67,7 +67,7 @@ def test_get_people():
     assert isinstance(got.people, list)
     groups = [got.people, got.cast, got.crew]
     for group in groups:
-        assert all([isinstance(p, Person) for p in group])
+        assert all(isinstance(p, Person) for p in group)
 
     ids = {
         'imdb': 'nm0227759',

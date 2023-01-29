@@ -22,7 +22,7 @@ class Person(IdsMixin):
         self.slug = slug or slugify(self.name)
         self.tmdb_id = None  # @deprecated: unused
 
-        if len(kwargs) > 0:
+        if kwargs:
             self._build(kwargs)
         else:
             self._get()
@@ -42,19 +42,19 @@ class Person(IdsMixin):
 
     @property
     def ext_full(self):
-        return self.ext + '?extended=full'
+        return f'{self.ext}?extended=full'
 
     @property
     def images_ext(self):
-        return self.ext + '?extended=images'
+        return f'{self.ext}?extended=images'
 
     @property
     def ext_movie_credits(self):
-        return self.ext + '/movies'
+        return f'{self.ext}/movies'
 
     @property
     def ext_tv_credits(self):
-        return self.ext + '/shows'
+        return f'{self.ext}/shows'
 
     @get
     def _get(self):
@@ -66,7 +66,7 @@ class Person(IdsMixin):
             try:
                 setattr(self, key, val)
             except AttributeError as ae:
-                if not hasattr(self, '_' + key):
+                if not hasattr(self, f'_{key}'):
                     raise ae
 
     @property

@@ -33,9 +33,8 @@ def comment(media, comment_body, spoiler=False, review=False):
     if not review and len(comment_body) > 200:
         review = True
     data = dict(comment=comment_body, spoiler=spoiler, review=review)
-    data.update(media.to_json_singular())
-    result = yield 'comments', data
-    yield result
+    data |= media.to_json_singular()
+    yield (yield 'comments', data)
 
 
 @post
@@ -52,9 +51,8 @@ def rate(media, rating, rated_at=None):
         rated_at = datetime.now(tz=timezone.utc)
 
     data = dict(rating=rating, rated_at=timestamp(rated_at))
-    data.update(media.ids)
-    result = yield 'sync/ratings', {media.media_type: [data]}
-    yield result
+    data |= media.ids
+    yield (yield 'sync/ratings', {media.media_type: [data]})
 
 
 @post
@@ -95,8 +93,7 @@ def add_to_history(media, watched_at=None):
                 "watched_at": watched_at,
             })
 
-    result = yield 'sync/history', media_object
-    yield result
+    yield (yield 'sync/history', media_object)
 
 
 @post
@@ -113,8 +110,7 @@ def add_to_watchlist(media):
     else:
         media_object = media
 
-    result = yield 'sync/watchlist', media_object
-    yield result
+    yield (yield 'sync/watchlist', media_object)
 
 
 @post
@@ -131,8 +127,7 @@ def remove_from_history(media):
     else:
         media_object = media
 
-    result = yield 'sync/history/remove', media_object
-    yield result
+    yield (yield 'sync/history/remove', media_object)
 
 
 @post
@@ -148,8 +143,7 @@ def remove_from_watchlist(media):
     else:
         media_object = media
 
-    result = yield 'sync/watchlist/remove', media_object
-    yield result
+    yield (yield 'sync/watchlist/remove', media_object)
 
 
 @post
@@ -166,8 +160,7 @@ def add_to_collection(media):
     else:
         media_object = media
 
-    result = yield 'sync/collection', media_object
-    yield result
+    yield (yield 'sync/collection', media_object)
 
 
 @post
@@ -183,8 +176,7 @@ def remove_from_collection(media):
     else:
         media_object = media
 
-    result = yield 'sync/collection/remove', media_object
-    yield result
+    yield (yield 'sync/collection/remove', media_object)
 
 
 def search(query, search_type='movie', year=None, slugify_query=False):
@@ -278,7 +270,7 @@ def search_by_id(query, id_type='imdb', media_type=None, slugify_query=False):
                 'trakt-person': 'trakt', 'imdb': 'imdb', 'tmdb': 'tmdb',
                 'tvdb': 'tvdb'}
     if id_type not in valids:
-        raise ValueError('search_type must be one of {}'.format(valids))
+        raise ValueError(f'search_type must be one of {valids}')
     source = id_types.get(id_type)
 
     media_types = {'trakt-movie': 'movie', 'trakt-show': 'show',
@@ -288,7 +280,7 @@ def search_by_id(query, id_type='imdb', media_type=None, slugify_query=False):
     # ID source. None is still an option here, as that will return all possible
     # types for a given source.
     if media_type is None:
-        media_type = media_types.get(source, None)
+        media_type = media_types.get(source)
 
     # If requested, slugify the query prior to running the search
     if slugify_query:
@@ -343,17 +335,17 @@ def get_watchlist(list_type=None, sort=None):
     valid_sort = ('rank', 'added', 'released', 'title')
 
     if list_type and list_type not in valid_type:
-        raise ValueError('list_type must be one of {}'.format(valid_type))
+        raise ValueError(f'list_type must be one of {valid_type}')
 
     if sort and sort not in valid_sort:
-        raise ValueError('sort must be one of {}'.format(valid_sort))
+        raise ValueError(f'sort must be one of {valid_sort}')
 
     uri = 'sync/watchlist'
     if list_type:
-        uri += '/{}'.format(list_type)
+        uri += f'/{list_type}'
 
-    if list_type and sort:
-        uri += '/{}'.format(sort)
+        if sort:
+            uri += f'/{sort}'
 
     data = yield uri
     results = []
@@ -387,11 +379,11 @@ def get_watched(list_type=None, extended=None):
     valid_type = ('movies', 'shows', 'seasons', 'episodes')
 
     if list_type and list_type not in valid_type:
-        raise ValueError('list_type must be one of {}'.format(valid_type))
+        raise ValueError(f'list_type must be one of {valid_type}')
 
     uri = 'sync/watched'
     if list_type:
-        uri += '/{}'.format(list_type)
+        uri += f'/{list_type}'
 
     if list_type == 'shows' and extended:
         uri += '?extended={extended}'.format(extended=extended)
@@ -424,11 +416,11 @@ def get_collection(list_type=None, extended=None):
     valid_type = ('movies', 'shows')
 
     if list_type and list_type not in valid_type:
-        raise ValueError('list_type must be one of {}'.format(valid_type))
+        raise ValueError(f'list_type must be one of {valid_type}')
 
     uri = 'sync/collection'
     if list_type:
-        uri += '/{}'.format(list_type)
+        uri += f'/{list_type}'
 
     if extended:
         uri += '?extended={extended}'.format(extended=extended)
@@ -453,9 +445,8 @@ def checkin_media(media, app_version, app_date, message="", sharing=None,
     """
     payload = dict(app_version=app_version, app_date=app_date, sharing=sharing,
                    message=message, venue_id=venue_id, venue_name=venue_name)
-    payload.update(media.to_json_singular())
-    result = yield "checkin", payload
-    yield result
+    payload |= media.to_json_singular()
+    yield (yield "checkin", payload)
 
 
 @delete
@@ -525,9 +516,8 @@ class Scrobbler:
         """
         payload = dict(progress=self.progress, app_version=self.version,
                        date=self.date)
-        payload.update(self.media.to_json_singular())
-        response = yield uri, payload
-        yield response
+        payload |= self.media.to_json_singular()
+        yield (yield uri, payload)
 
     def __enter__(self):
         """Context manager support for `with Scrobbler` syntax. Begins

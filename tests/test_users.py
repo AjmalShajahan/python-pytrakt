@@ -16,7 +16,7 @@ def test_requests():
     for getter in getters:
         requests = getter()
         assert isinstance(requests, list)
-        assert all([isinstance(r, Request) for r in requests])
+        assert all(isinstance(r, Request) for r in requests)
         for request in requests:
             r = request.approve()
             assert r is None
@@ -33,13 +33,13 @@ def test_user():
 def test_user_collections():
     sean = User('sean')
     for _ in range(2):
-        assert all([isinstance(m, Movie) for m in sean.movie_collection])
-        assert all([isinstance(s, TVShow) for s in sean.show_collection])
+        assert all(isinstance(m, Movie) for m in sean.movie_collection)
+        assert all(isinstance(s, TVShow) for s in sean.show_collection)
 
 
 def test_user_list():
     sean = User('sean')
-    assert all([isinstance(l, UserList) for l in sean.lists])
+    assert all(isinstance(l, UserList) for l in sean.lists)
 
     data = dict(name='Star Wars in machete order',
                 description='Some descriptive text',
@@ -58,7 +58,7 @@ def test_user_list():
 
     # enumerate list items
     instancetypes = (Movie, TVShow, TVSeason, TVEpisode, Person)
-    assert all([isinstance(k, instancetypes) for k in l])
+    assert all(isinstance(k, instancetypes) for k in l)
 
     # PUT to add and remove items from list
     l.add_items()
@@ -88,24 +88,24 @@ def test_follow_user():
 def test_get_others():
     sean = User('sean')
     for _ in range(2):
-        assert all([isinstance(u, User) for u in sean.followers])
-        assert all([isinstance(u, User) for u in sean.following])
-        assert all([isinstance(u, User) for u in sean.friends])
+        assert all(isinstance(u, User) for u in sean.followers)
+        assert all(isinstance(u, User) for u in sean.following)
+        assert all(isinstance(u, User) for u in sean.friends)
 
 
 def test_user_ratings():
     sean = User('sean')
     rating_types = ['movies', 'shows', 'seasons', 'episodes']
     for typ in rating_types:
-        assert all([isinstance(r, dict) for r in sean.get_ratings(typ)])
-    assert all([isinstance(r, dict) for r in sean.get_ratings('movies', 10)])
+        assert all(isinstance(r, dict) for r in sean.get_ratings(typ))
+    assert all(isinstance(r, dict) for r in sean.get_ratings('movies', 10))
 
 
 def test_user_watchlists():
     sean = User('sean')
     for _ in range(2):
-        assert all([isinstance(m, Movie) for m in sean.watchlist_movies])
-        assert all([isinstance(s, TVShow) for s in sean.watchlist_shows])
+        assert all(isinstance(m, Movie) for m in sean.watchlist_movies)
+        assert all(isinstance(s, TVShow) for s in sean.watchlist_shows)
 
 
 def test_watching():
@@ -121,8 +121,8 @@ def test_watching():
 def test_watched():
     sean = User('sean')
     for _ in range(2):
-        assert all([isinstance(m, Movie) for m in sean.watched_movies])
-        assert all([isinstance(s, TVShow) for s in sean.watched_shows])
+        assert all(isinstance(m, Movie) for m in sean.watched_movies)
+        assert all(isinstance(s, TVShow) for s in sean.watched_shows)
 
 
 def test_stats():

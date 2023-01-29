@@ -9,7 +9,7 @@ from trakt.utils import airs_date
 
 def test_get_episodes():
     s1 = TVSeason('Game of Thrones', season=1)
-    assert all([isinstance(e, TVEpisode) for e in s1.episodes])
+    assert all(isinstance(e, TVEpisode) for e in s1.episodes)
 
 
 def test_episode_search():
@@ -34,7 +34,7 @@ def test_get_episode():
 
 def test_episode_comments():
     e1 = TVEpisode('Game of Thrones', season=1, number=1)
-    assert all([isinstance(c, Comment) for c in e1.comments])
+    assert all(isinstance(c, Comment) for c in e1.comments)
 
 
 def test_episode_ratings():
@@ -44,7 +44,7 @@ def test_episode_ratings():
 
 def test_episode_watching_now():
     e1 = TVEpisode('Game of Thrones', season=1, number=1)
-    assert all([isinstance(u, User) for u in e1.watching_now])
+    assert all(isinstance(u, User) for u in e1.watching_now)
 
 
 def test_episode_images():

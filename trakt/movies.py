@@ -35,10 +35,7 @@ def get_recommended_movies():
     first.
     """
     data = yield 'recommendations/movies'
-    movies = []
-    for movie in data:
-        movies.append(Movie(**movie))
-    yield movies
+    yield [Movie(**movie) for movie in data]
 
 
 @get
@@ -100,7 +97,7 @@ class Movie(IdsMixin):
         self.tmdb_id = self.imdb_id = None  # @deprecated: unused
         self.trakt_id = None  # @deprecated: unused
 
-        if len(kwargs) > 0:
+        if kwargs:
             self._build(kwargs)
         else:
             self._get()
@@ -125,8 +122,8 @@ class Movie(IdsMixin):
     def _build(self, data):
         """Build this :class:`Movie` object with the data in *data*"""
         for key, val in data.items():
-            if hasattr(self, '_' + key):
-                setattr(self, '_' + key, val)
+            if hasattr(self, f'_{key}'):
+                setattr(self, f'_{key}', val)
             else:
                 setattr(self, key, val)
 
@@ -138,12 +135,12 @@ class Movie(IdsMixin):
     @property
     def ext_full(self):
         """Uri to retrieve all information about this :class:`Movie`"""
-        return self.ext + '?extended=full'
+        return f'{self.ext}?extended=full'
 
     @property
     def images_ext(self):
         """Uri to retrieve additional image information"""
-        return self.ext + '?extended=images'
+        return f'{self.ext}?extended=images'
 
     @property
     @get
@@ -153,7 +150,7 @@ class Movie(IdsMixin):
         they go by their alternate titles
         """
         if self._aliases is None:
-            data = yield self.ext + '/aliases'
+            data = yield f'{self.ext}/aliases'
             self._aliases = [Alias(**alias) for alias in data]
         yield self._aliases
 
@@ -170,7 +167,7 @@ class Movie(IdsMixin):
         """
         # TODO (jnappi) Pagination
         from trakt.users import User
-        data = yield self.ext + '/comments'
+        data = yield f'{self.ext}/comments'
         self._comments = []
         for com in data:
             user = User(**com.get('user'))
@@ -200,7 +197,7 @@ class Movie(IdsMixin):
         :class:`Movie`, including both cast and crew
         """
         if self._people is None:
-            data = yield self.ext + '/people'
+            data = yield f'{self.ext}/people'
             crew = data.get('crew', {})
             cast = []
             for c in data.get('cast', []):
@@ -222,29 +219,23 @@ class Movie(IdsMixin):
     def ratings(self):
         """Ratings (between 0 and 10) and distribution for a movie."""
         if self._ratings is None:
-            self._ratings = yield self.ext + '/ratings'
+            self._ratings = yield f'{self.ext}/ratings'
         yield self._ratings
 
     @property
     @get
     def related(self):
         """The top 10 :class:`Movie`'s related to this :class:`Movie`"""
-        data = yield self.ext + '/related'
-        movies = []
-        for movie in data:
-            movies.append(Movie(**movie))
-        yield movies
+        data = yield f'{self.ext}/related'
+        yield [Movie(**movie) for movie in data]
 
     @property
     @get
     def watching_now(self):
         """A list of all :class:`User`'s watching a movie."""
         from trakt.users import User
-        data = yield self.ext + '/watching'
-        users = []
-        for user in data:
-            users.append(User(**user))
-        yield users
+        data = yield f'{self.ext}/watching'
+        yield [User(**user) for user in data]
 
     def add_to_library(self):
         """Add this :class:`Movie` to your library."""
@@ -367,5 +358,5 @@ class Movie(IdsMixin):
 
     def __str__(self):
         """String representation of a :class:`Movie`"""
-        return '<Movie>: {}'.format(self.title)
+        return f'<Movie>: {self.title}'
     __repr__ = __str__

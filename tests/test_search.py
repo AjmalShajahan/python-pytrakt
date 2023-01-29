@@ -91,4 +91,4 @@ def test_get_search_results():
     assert isinstance(results, list)
     assert len(results) == 2
     assert all(isinstance(r, SearchResult) for r in results)
-    assert all([r.score != 0.0 for r in results])
+    assert all(r.score != 0.0 for r in results)

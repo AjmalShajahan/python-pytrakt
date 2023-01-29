@@ -102,9 +102,7 @@ def recommended_shows(time_period='weekly', page=1, limit=10, extended=None):
     All stats are relative to the specific time period."""
     valid_time_period = ('daily', 'weekly', 'monthly', 'yearly', 'all')
     if time_period not in valid_time_period:
-        raise ValueError('time_period must be one of {}'.format(
-            valid_time_period
-        ))
+        raise ValueError(f'time_period must be one of {valid_time_period}')
 
     uri = 'shows/recommended/{time_period}?page={page}&limit={limit}'.format(
         time_period=time_period, page=page, limit=limit
@@ -125,9 +123,7 @@ def played_shows(time_period='weekly', page=1, limit=10, extended=None):
             All stats are relative to the specific time period."""
     valid_time_period = ('daily', 'weekly', 'monthly', 'yearly', 'all')
     if time_period not in valid_time_period:
-        raise ValueError('time_period must be one of {}'.format(
-            valid_time_period
-        ))
+        raise ValueError(f'time_period must be one of {valid_time_period}')
 
     uri = 'shows/played/{time_period}?page={page}&limit={limit}'.format(
         time_period=time_period, page=page, limit=limit
@@ -147,9 +143,7 @@ def watched_shows(time_period='weekly', page=1, limit=10, extended=None):
     All stats are relative to the specific time period."""
     valid_time_period = ('daily', 'weekly', 'monthly', 'yearly', 'all')
     if time_period not in valid_time_period:
-        raise ValueError('time_period must be one of {}'.format(
-            valid_time_period
-        ))
+        raise ValueError(f'time_period must be one of {valid_time_period}')
 
     uri = 'shows/watched/{time_period}?page={page}&limit={limit}'.format(
         time_period=time_period, page=page, limit=limit
@@ -169,9 +163,7 @@ def collected_shows(time_period='weekly', page=1, limit=10, extended=None):
     All stats are relative to the specific time period."""
     valid_time_period = ('daily', 'weekly', 'monthly', 'yearly', 'all')
     if time_period not in valid_time_period:
-        raise ValueError('time_period must be one of {}'.format(
-            valid_time_period
-        ))
+        raise ValueError(f'time_period must be one of {valid_time_period}')
 
     uri = 'shows/collected/{time_period}?page={page}&limit={limit}'.format(
         time_period=time_period, page=page, limit=limit
@@ -213,7 +205,7 @@ class TVShow(IdsMixin):
         self.title = title
         self._seasons = self._build_seasons(seasons) if seasons else None
 
-        if len(kwargs) > 0:
+        if kwargs:
             self._build(kwargs)
         else:
             self._get()
@@ -238,7 +230,7 @@ class TVShow(IdsMixin):
         if self.year is None:
             return slugify(self.title)
 
-        return slugify(self.title + ' ' + str(self.year))
+        return slugify(f'{self.title} {str(self.year)}')
 
     @staticmethod
     def search(title, year=None):
@@ -258,8 +250,8 @@ class TVShow(IdsMixin):
 
     def _build(self, data):
         for key, val in data.items():
-            if hasattr(self, '_' + key):
-                setattr(self, '_' + key, val)
+            if hasattr(self, f'_{key}'):
+                setattr(self, f'_{key}', val)
             else:
                 setattr(self, key, val)
 
@@ -269,12 +261,12 @@ class TVShow(IdsMixin):
 
     @property
     def ext_full(self):
-        return self.ext + '?extended=full'
+        return f'{self.ext}?extended=full'
 
     @property
     def images_ext(self):
         """Uri to retrieve additional image information."""
-        return self.ext + '?extended=images'
+        return f'{self.ext}?extended=images'
 
     @property
     @get
@@ -284,7 +276,7 @@ class TVShow(IdsMixin):
         they go by their alternate titles
         """
         if self._aliases is None:
-            data = yield self.ext + '/aliases'
+            data = yield f'{self.ext}/aliases'
             self._aliases = [Alias(**alias) for alias in data]
         yield self._aliases
 
@@ -302,7 +294,7 @@ class TVShow(IdsMixin):
         # TODO (jnappi) Pagination
         from .users import User
 
-        data = yield self.ext + '/comments'
+        data = yield f'{self.ext}/comments'
         self._comments = []
         for com in data:
             user = User(**com.pop('user'))
@@ -321,11 +313,9 @@ class TVShow(IdsMixin):
             params['hidden'] = 'true'
 
         if params:
-            uri += '?' + urlencode(params)
+            uri += f'?{urlencode(params)}'
 
-        data = yield uri
-
-        yield data
+        yield (yield uri)
 
     @property
     @get
@@ -391,7 +381,7 @@ class TVShow(IdsMixin):
         :class:`TVShow`, including both cast and crew
         """
         if self._people is None:
-            data = yield self.ext + '/people'
+            data = yield f'{self.ext}/people'
             crew = data.get('crew', {})
             cast = []
             for c in data.get('cast', []):
@@ -413,18 +403,15 @@ class TVShow(IdsMixin):
     def ratings(self):
         """Ratings (between 0 and 10) and distribution for a movie."""
         if self._ratings is None:
-            self._ratings = yield self.ext + '/ratings'
+            self._ratings = yield f'{self.ext}/ratings'
         yield self._ratings
 
     @property
     @get
     def related(self):
         """The top 10 :class:`TVShow`'s related to this :class:`TVShow`"""
-        data = yield self.ext + '/related'
-        shows = []
-        for show in data:
-            shows.append(TVShow(**show))
-        yield shows
+        data = yield f'{self.ext}/related'
+        yield [TVShow(**show) for show in data]
 
     @property
     @get
@@ -433,7 +420,7 @@ class TVShow(IdsMixin):
         seasons which each contain :class:`TVEpisode` elements
         """
         if self._seasons is None:
-            data = yield self.ext + '/seasons?extended=episodes'
+            data = yield f'{self.ext}/seasons?extended=episodes'
             self._seasons = []
             for season in data:
                 # Prepare episodes
@@ -458,7 +445,7 @@ class TVShow(IdsMixin):
         is found, `None` will be returned.
         """
         if self._last_episode is None:
-            data = yield self.ext + '/last_episode?extended=full'
+            data = yield f'{self.ext}/last_episode?extended=full'
             self._last_episode = data and TVEpisode(show=self.title,
                                                     show_id=self.trakt, **data)
         yield self._last_episode
@@ -470,7 +457,7 @@ class TVShow(IdsMixin):
         is found, `None` will be returned.
         """
         if self._next_episode is None:
-            data = yield self.ext + '/next_episode?extended=full'
+            data = yield f'{self.ext}/next_episode?extended=full'
             self._next_episode = data and TVEpisode(show=self.title,
                                                     show_id=self.trakt, **data)
         yield self._next_episode
@@ -480,11 +467,8 @@ class TVShow(IdsMixin):
     def watching_now(self):
         """A list of all :class:`User`'s watching a movie."""
         from .users import User
-        data = yield self.ext + '/watching'
-        users = []
-        for user in data:
-            users.append(User(**user))
-        yield users
+        data = yield f'{self.ext}/watching'
+        yield [User(**user) for user in data]
 
     def add_to_library(self):
         """Add this :class:`TVShow` to your library."""
@@ -559,7 +543,7 @@ class TVShow(IdsMixin):
 
     def __str__(self):
         """Return a string representation of a :class:`TVShow`"""
-        return '<TVShow> {}'.format(self.title)
+        return f'<TVShow> {self.title}'
 
     __repr__ = __str__
 
@@ -577,7 +561,7 @@ class TVSeason(IdsMixin):
         self._comments = self._ratings = None
         self._episodes = self._build_episodes(episodes) if episodes else None
 
-        if len(kwargs) > 0 or episodes:
+        if kwargs or episodes:
             self._build(kwargs)
         else:
             self._get()
@@ -609,7 +593,7 @@ class TVSeason(IdsMixin):
                 try:
                     setattr(self, key, val)
                 except AttributeError:
-                    setattr(self, '_'+key, val)
+                    setattr(self, f'_{key}', val)
 
     @property
     @get
@@ -620,7 +604,7 @@ class TVSeason(IdsMixin):
         # TODO (jnappi) Pagination
         from .users import User
 
-        data = yield self.ext + '/comments'
+        data = yield f'{self.ext}/comments'
         self._comments = []
         for com in data:
             user = User(**com.pop('user'))
@@ -656,7 +640,7 @@ class TVSeason(IdsMixin):
         :param episode: An int corresponding to the number of the episode
             we're trying to retrieve
         """
-        episode_extension = '/episodes/{}?extended=full'.format(episode)
+        episode_extension = f'/episodes/{episode}?extended=full'
         try:
             data = yield self.ext + episode_extension
             yield TVEpisode(show=self.show, **data)
@@ -668,7 +652,7 @@ class TVSeason(IdsMixin):
     def ratings(self):
         """Ratings (between 0 and 10) and distribution for a movie."""
         if self._ratings is None:
-            self._ratings = yield self.ext + '/ratings'
+            self._ratings = yield f'{self.ext}/ratings'
         yield self._ratings
 
     @property
@@ -677,11 +661,8 @@ class TVSeason(IdsMixin):
         """A list of all :class:`User`'s watching a movie."""
         from .users import User
 
-        data = yield self.ext + '/watching'
-        users = []
-        for user in data:
-            users.append(User(**user))
-        yield users
+        data = yield f'{self.ext}/watching'
+        yield [User(**user) for user in data]
 
     def add_to_library(self):
         """Add this :class:`TVSeason` to your library."""
@@ -728,7 +709,7 @@ class TVEpisode(IdsMixin):
         self.runtime = None
         self._stats = self._images = self._comments = None
         self._translations = self._ratings = None
-        if len(kwargs) > 0:
+        if kwargs:
             self._build(kwargs)
         else:
             self._get()
@@ -745,8 +726,8 @@ class TVEpisode(IdsMixin):
     def _build(self, data):
         """Build this :class:`TVEpisode` object with the data in *data*"""
         for key, val in data.items():
-            if hasattr(self, '_' + key):
-                setattr(self, '_' + key, val)
+            if hasattr(self, f'_{key}'):
+                setattr(self, f'_{key}', val)
             else:
                 setattr(self, key, val)
 
@@ -759,7 +740,7 @@ class TVEpisode(IdsMixin):
         # TODO (jnappi) Pagination
         from .users import User
 
-        data = yield self.ext + '/comments'
+        data = yield f'{self.ext}/comments'
         self._comments = []
         for com in data:
             user = User(**com.pop('user'))
@@ -777,12 +758,12 @@ class TVEpisode(IdsMixin):
 
     @property
     def ext_full(self):
-        return self.ext + '?extended=full'
+        return f'{self.ext}?extended=full'
 
     @property
     def images_ext(self):
         """Uri to retrieve additional image information"""
-        return self.ext + '?extended=images'
+        return f'{self.ext}?extended=images'
 
     @staticmethod
     def search(title, year=None):
@@ -840,7 +821,7 @@ class TVEpisode(IdsMixin):
     def ratings(self):
         """Ratings (between 0 and 10) and distribution for a movie."""
         if self._ratings is None:
-            self._ratings = yield self.ext + '/ratings'
+            self._ratings = yield f'{self.ext}/ratings'
         yield self._ratings
 
     @property
@@ -849,11 +830,8 @@ class TVEpisode(IdsMixin):
         """A list of all :class:`User`'s watching a movie."""
         from .users import User
 
-        data = yield self.ext + '/watching'
-        users = []
-        for user in data:
-            users.append(User(**user))
-        yield users
+        data = yield f'{self.ext}/watching'
+        yield [User(**user) for user in data]
 
     def get_description(self):
         """backwards compatible function that returns this :class:`TVEpisode`'s
@@ -958,7 +936,5 @@ class TVEpisode(IdsMixin):
         }
 
     def __str__(self):
-        return '<TVEpisode>: {} S{}E{} {}'.format(self.show, self.season,
-                                                  self.number,
-                                                  self.title)
+        return f'<TVEpisode>: {self.show} S{self.season}E{self.number} {self.title}'
     __repr__ = __str__

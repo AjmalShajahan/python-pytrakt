@@ -7,16 +7,16 @@ from trakt.users import User
 
 def test_get_seasons():
     got = TVShow('Game of Thrones')
-    assert all([isinstance(s, TVSeason) for s in got.seasons])
+    assert all(isinstance(s, TVSeason) for s in got.seasons)
     season = got.seasons[1]
     assert season.season == 1
     assert len(season.episodes) == 10
-    assert all([isinstance(episode, TVEpisode) for episode in season.episodes])
+    assert all(isinstance(episode, TVEpisode) for episode in season.episodes)
 
 
 def test_get_seasons_with_year():
     got = TVShow('The Flash', year=2014)
-    assert all([isinstance(s, TVSeason) for s in got.seasons])
+    assert all(isinstance(s, TVSeason) for s in got.seasons)
 
 
 def test_get_season():
@@ -27,7 +27,7 @@ def test_get_season():
 
 def test_season_comments():
     s1 = TVSeason('Game of Thrones')
-    assert all([isinstance(c, Comment) for c in s1.comments])
+    assert all(isinstance(c, Comment) for c in s1.comments)
 
 
 def test_season_ratings():
@@ -37,14 +37,14 @@ def test_season_ratings():
 
 def test_season_watching_now():
     s1 = TVSeason('Game of Thrones')
-    assert all([isinstance(u, User) for u in s1.watching_now])
+    assert all(isinstance(u, User) for u in s1.watching_now)
 
 
 def test_episodes_getter():
     s1 = TVSeason('Game of Thrones')
     s1._episodes = None
     for _ in range(2):
-        assert all([isinstance(e, TVEpisode) for e in s1.episodes])
+        assert all(isinstance(e, TVEpisode) for e in s1.episodes)
 
 
 def test_oneliners():

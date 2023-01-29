@@ -51,8 +51,7 @@ def get_all_requests():
 @get
 def get_user_settings():
     """The currently authenticated user's settings"""
-    data = yield 'users/settings'
-    yield data
+    yield (yield 'users/settings')
 
 
 @delete
@@ -74,7 +73,7 @@ class UserList(namedtuple('UserList', ['name', 'description', 'privacy',
     def __init__(self, *args, ids=None, **kwargs):
         super().__init__()
         self._ids = ids
-        self._items = list()
+        self._items = []
 
     def __iter__(self):
         """Iterate over the items in this user list"""
@@ -220,7 +219,7 @@ class User:
 
         self._settings = None
 
-        if len(kwargs) > 0:
+        if kwargs:
             self._build(kwargs)
         else:
             self._get()
@@ -464,17 +463,14 @@ class User:
                                                    type=media_type)
         if rating is not None:
             uri += '/{rating}'.format(rating=rating)
-        data = yield uri
-        # TODO (moogar0880) - return as objects
-        yield data
+        yield (yield uri)
 
     @get
     def get_stats(self):
         """Returns stats about the movies, shows, and episodes a user has
         watched and collected
         """
-        data = yield 'users/{user}/stats'.format(user=slugify(self.username))
-        yield data
+        yield (yield 'users/{user}/stats'.format(user=slugify(self.username)))
 
     @get
     def get_liked_lists(self, list_type=None, limit=None):
@@ -494,8 +490,7 @@ class User:
         if limit is not None:
             uri += f'?limit={limit}'
 
-        data = yield uri
-        yield data
+        yield (yield uri)
 
     def follow(self):
         """Follow this :class:`User`"""
@@ -507,7 +502,7 @@ class User:
 
     def __str__(self):
         """String representation of a :class:`User`"""
-        return '<User>: {}'.format(self.username)
+        return f'<User>: {self.username}'
     __repr__ = __str__
 
 

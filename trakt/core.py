@@ -100,8 +100,7 @@ def _get_client_info(app_id=False):
     if app_id:
         msg = 'Please enter your application ID ({default}): '.format(
             default=APPLICATION_ID)
-        user_input = input(msg)
-        if user_input:
+        if user_input := input(msg):
             APPLICATION_ID = user_input
     return client_id, client_secret
 
@@ -159,9 +158,7 @@ def _terminal_oauth_pin(authorization_url):
     """
     print('Please go here and authorize,', authorization_url)
 
-    # Get the authorization verifier code from the callback url
-    response = input('Paste the Code returned here: ')
-    return response
+    return input('Paste the Code returned here: ')
 
 
 def oauth_auth(username, client_id=None, client_secret=None, store=False,
@@ -495,11 +492,10 @@ class Core:
         if not isinstance(uri, (str, tuple)):
             # Allow properties to safely yield arbitrary data
             return uri
-        if isinstance(uri, tuple):
-            uri, data = uri
-            return BASE_URL + uri, generator, data
-        else:
+        if not isinstance(uri, tuple):
             return BASE_URL + uri, generator, None
+        uri, data = uri
+        return BASE_URL + uri, generator, data
 
     def _handle_request(self, method, url, data=None):
         """Handle actually talking out to the trakt API, logging out debug
